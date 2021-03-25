@@ -1,9 +1,10 @@
 import {
-  CONTACTS_FILTER_OUT,
-  CONTACT_DELETE,
-  CONTACT_ADD,
-} from './contacts-types';
+  addContact,
+  deleteContact,
+  filterOutContacts,
+} from './contacts-actions';
 import { combineReducers } from 'redux';
+import { createReducer } from '@reduxjs/toolkit';
 
 const INITIAL_CONTACTS = [
   { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
@@ -11,33 +12,25 @@ const INITIAL_CONTACTS = [
   { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
   { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
 ];
+const addConditionalContact = (state, payload) => {
+  const includedInContacts = state.find(item => item.name === payload.name);
 
-const itemsReducer = (state = INITIAL_CONTACTS, { type, payload }) => {
-  switch (type) {
-    case CONTACT_ADD:
-      const includedInContacts = state.find(item => item.name === payload.name);
-
-      if (includedInContacts !== undefined) {
-        alert(`${payload.name} is already in contacts`);
-        return state;
-      }
-      return [...state, payload];
-
-    case CONTACT_DELETE:
-      return state.filter(({ id }) => id !== payload);
-    default:
-      return state;
+  if (includedInContacts !== undefined) {
+    alert(`${payload.name} is already in contacts`);
+    return state;
   }
+  return [...state, payload];
 };
 
-const filterReducer = (state = '', { type, payload }) => {
-  switch (type) {
-    case CONTACTS_FILTER_OUT:
-      return payload;
-    default:
-      return state;
-  }
-};
+const itemsReducer = createReducer(INITIAL_CONTACTS, {
+  [addContact]: (state, { payload }) => addConditionalContact(state, payload),
+  [deleteContact]: (state, { payload }) =>
+    state.filter(({ id }) => id !== payload),
+});
+
+const filterReducer = createReducer('', {
+  [filterOutContacts]: (_, { payload }) => payload,
+});
 
 export default combineReducers({
   items: itemsReducer,
